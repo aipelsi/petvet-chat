@@ -13,6 +13,7 @@ model = AutoModelForSequenceClassification.from_pretrained(model_name)
 
 # Function to diagnose pet health using the model
 def diagnose_pet_health(user_input):
+    """Diagnose pet health using the Hugging Face model."""
     # Encode the text and prepare inputs for the model
     inputs = tokenizer(user_input, return_tensors="pt", padding=True, truncation=True, max_length=512)
 
@@ -32,6 +33,7 @@ def diagnose_pet_health(user_input):
 
 # Function to get GPT-4 response based on the top classifications
 def get_vetGPT_response(top_label, second_label, user_input):
+    """Fetch detailed advice from GPT-4 based on diagnosis."""
     prompt = (
         f"You are a veterinary assistant named VetGPT. A pet owner described their pet's symptoms as:\n\n"
         f"'{user_input}'\n\n"
@@ -74,11 +76,16 @@ if st.button("Diagnose"):
             top_label, second_label = labels[0], labels[1]  # Top two classifications
 
             # Display probabilities
+            st.write("**Model Diagnosis Results:**")
             for label, prob in diagnosis.items():
                 st.write(f"- **{label}**: {prob:.2%} probability")
 
             # Fetch VetGPT's response based on the top classifications
             st.subheader(f"VetGPT's Advice on **{top_label}**")
-            vetGPT_response = get_vetGPT_response(top_label, second_label, user_input)
-            st.write(vetGPT_response)
+            try:
+                vetGPT_response = get_vetGPT_response(top_label, second_label, user_input)
+                st.write(vetGPT_response)
+            except Exception as e:
+                st.error(f"An error occurred while fetching GPT-4 response: {str(e)}")
+
 
