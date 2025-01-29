@@ -61,7 +61,7 @@ st.write("Describe your pet's symptoms, and I'll provide initial guidance based 
 # Select Mode: Diagnosis or Chatbot
 mode = st.radio("Choose a mode:", ["🐕 AI Diagnosis & Advice", "💬 Chat with VetGPT"])
 
-if mode == "🐕 AI Diagnosis & Advice":
+if mode == "🐕 AI Triage Line & Advice":
     # Input text box for user to describe symptoms
     user_input = st.text_area("Describe your pet's symptoms (e.g., vomiting, lethargy, etc.):")
 
