@@ -1,7 +1,7 @@
 import streamlit as st
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
-import openai  # Import OpenAI for VetGPT integration
+import openai  
 
 # Fetch OpenAI API key from Streamlit Secrets
 if "openai_api_key" not in st.secrets:
@@ -13,6 +13,43 @@ else:
 model_name = 'havocy28/VetBERTDx'
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSequenceClassification.from_pretrained(model_name)
+
+# Function to set the full-screen background image with transparency
+def set_background(image_url):
+    """Apply a full-screen background image with a semi-transparent overlay."""
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background: url("{image_url}") no-repeat center center fixed;
+            background-size: cover;
+        }}
+        .overlay {{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* Dark overlay for readability */
+            z-index: -1;
+        }}
+        .stMarkdown, .stTextArea, .stButton, .stTitle {{
+            color: white !important;
+        }}
+        .container {{
+            padding: 30px;
+        }}
+        </style>
+        <div class="overlay"></div>
+        """,
+        unsafe_allow_html=True
+    )
+
+# 🔹 Use your Google Drive direct image link
+background_image_url = "https://drive.google.com/uc?export=view&id=1RKiDwMlRurP5LMfudadIhrFkfD0ebn2y"
+
+# Apply the background
+set_background(background_image_url)
 
 # Function to diagnose pet health using the model
 def diagnose_pet_health(user_input):
@@ -55,6 +92,7 @@ def get_vetGPT_response(conditions, user_input):
     return response.choices[0].message.content
 
 # Initialize Streamlit App
+st.markdown('<div class="container">', unsafe_allow_html=True)
 st.title("🐾 Pet Vet Chatbot - AI-Powered Veterinary Assistant")
 st.write("Describe your pet's symptoms, and I'll provide initial guidance based on AI analysis. You can also **chat** with VetGPT for further questions!")
 
@@ -122,3 +160,5 @@ elif mode == "💬 Chat with VetGPT":
         # Display chatbot response
         with st.chat_message("assistant"):
             st.write(bot_reply)
+
+st.markdown('</div>', unsafe_allow_html=True)
