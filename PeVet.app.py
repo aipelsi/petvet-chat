@@ -7,7 +7,7 @@ import openai  # Import OpenAI for VetGPT integration
 if "openai_api_key" not in st.secrets:
     st.error("❌ OpenAI API key is missing! Please add it to Streamlit Secrets.")
 else:
-    openai.api_key = st.secrets["openai_api_key"]
+    client = openai.OpenAI(api_key=st.secrets["openai_api_key"])  # Use new client-based approach
 
 # Load the tokenizer and model from Hugging Face Hub
 model_name = 'havocy28/VetBERTDx'
@@ -16,14 +16,16 @@ model = AutoModelForSequenceClassification.from_pretrained(model_name)
 
 # Function to diagnose pet health using the model
 def diagnose_pet_health(user_input):
-    """Diagnose pet health using the Hugging Face model."""
+    """Diagnose pet health using the Hugging Face model and return the top two classifications."""
     inputs = tokenizer(user_input, return_tensors="pt", padding=True, truncation=True, max_length=512)
     with torch.no_grad():
         logits = model(**inputs).logits
         probabilities = torch.softmax(logits, dim=-1)
     label_map = model.config.id2label
     diagnosis = {label_map[idx]: prob.item() for idx, prob in enumerate(probabilities[0])}
-    return {k: v for k, v in sorted(diagnosis.items(), key=lambda item: item[1], reverse=True)}
+    # Return only the top two classifications
+    sorted_diagnosis = sorted(diagnosis.items(), key=lambda item: item[1], reverse=True)[:2]
+    return sorted_diagnosis
 
 # Function to get GPT-4 response based on the top classifications
 def get_vetGPT_response(top_label, second_label, user_input):
@@ -36,14 +38,15 @@ def get_vetGPT_response(top_label, second_label, user_input):
         f"2️⃣ **{second_label}** (second most likely)\n\n"
         f"Explain what the top condition means, possible causes, recommended next steps, and whether the pet should see a vet."
     )
-    response = openai.ChatCompletion.create(
+
+    response = client.chat.completions.create(  # Updated for OpenAI v1.0+
         model="gpt-4",
         messages=[
             {"role": "system", "content": "You are a helpful veterinary assistant."},
             {"role": "user", "content": prompt}
         ]
     )
-    return response["choices"][0]["message"]["content"]
+    return response.choices[0].message.content
 
 # Streamlit app
 st.title("Pet Vet Chatbot 🐾")
@@ -58,21 +61,21 @@ if st.button("Diagnose"):
     elif "openai_api_key" not in st.secrets:
         st.error("OpenAI API key is missing! Add it to Streamlit Secrets.")
     else:
+        # Get the top two diagnosis results from the model
         diagnosis = diagnose_pet_health(user_input)
-        st.subheader("Diagnosis Results:")
-        labels = list(diagnosis.keys())
-        if len(labels) < 2:
+        st.subheader("Diagnosis Results (Top Two):")
+        if len(diagnosis) < 2:
             st.error("Not enough classifications to proceed. Please refine the input.")
         else:
-            top_label, second_label = labels[0], labels[1]
-            for label, prob in diagnosis.items():
-                st.write(f"- **{label}**: {prob:.2%} probability")
+            # Extract top two classifications
+            (top_label, top_prob), (second_label, second_prob) = diagnosis
+            st.write(f"1️⃣ **{top_label}**: {top_prob:.2%} probability")
+            st.write(f"2️⃣ **{second_label}**: {second_prob:.2%} probability")
+            
+            # Fetch VetGPT's response based on the top classifications
             st.subheader(f"VetGPT's Advice on **{top_label}**")
             try:
                 vetGPT_response = get_vetGPT_response(top_label, second_label, user_input)
                 st.write(vetGPT_response)
             except Exception as e:
                 st.error(f"An error occurred while fetching GPT-4 response: {str(e)}")
-
-
-
