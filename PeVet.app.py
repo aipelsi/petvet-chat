@@ -16,16 +16,18 @@ model = AutoModelForSequenceClassification.from_pretrained(model_name)
 
 # Function to diagnose pet health using the model
 def diagnose_pet_health(user_input):
-    """Diagnose pet health using the Hugging Face model and return the top two classifications."""
+    """Diagnose pet health using the Hugging Face model and return the top two classifications, excluding 'repeat'."""
     inputs = tokenizer(user_input, return_tensors="pt", padding=True, truncation=True, max_length=512)
     with torch.no_grad():
         logits = model(**inputs).logits
         probabilities = torch.softmax(logits, dim=-1)
     label_map = model.config.id2label
     diagnosis = {label_map[idx]: prob.item() for idx, prob in enumerate(probabilities[0])}
-    # Return only the top two classifications
-    sorted_diagnosis = sorted(diagnosis.items(), key=lambda item: item[1], reverse=True)[:2]
-    return sorted_diagnosis
+
+    # Remove 'repeat' from the diagnosis list
+    filtered_diagnosis = [(label, prob) for label, prob in sorted(diagnosis.items(), key=lambda item: item[1], reverse=True) if label.lower() != "repeat"]
+
+    return filtered_diagnosis[:2]  # Return only the top two classifications (excluding 'repeat')
 
 # Function to get GPT-4 response based on the top classifications
 def get_vetGPT_response(top_label, second_label, user_input):
@@ -50,12 +52,12 @@ def get_vetGPT_response(top_label, second_label, user_input):
 
 # Streamlit app
 st.title("Pet Vet Chatbot 🐾")
-st.write("Welcome to the Pet Vet Chatbot! Describe your pet's symptoms, and I'll help diagnose the issue.")
+st.write("Welcome to the Pet Vet Chatbot! Describe your pet's symptoms, and I'll provide veterinary advice.")
 
 # Input text box for user to describe symptoms
 user_input = st.text_area("Describe your pet's symptoms (e.g., vomiting, lethargy, etc.):")
 
-if st.button("Diagnose"):
+if st.button("Get Advice"):
     if user_input.strip() == "":
         st.warning("Please describe your pet's symptoms.")
     elif "openai_api_key" not in st.secrets:
@@ -63,19 +65,18 @@ if st.button("Diagnose"):
     else:
         # Get the top two diagnosis results from the model
         diagnosis = diagnose_pet_health(user_input)
-        st.subheader("Diagnosis Results (Top Two):")
+        
         if len(diagnosis) < 2:
-            st.error("Not enough classifications to proceed. Please refine the input.")
+            st.error("Not enough valid classifications to proceed. Please refine the input.")
         else:
             # Extract top two classifications
-            (top_label, top_prob), (second_label, second_prob) = diagnosis
-            st.write(f"1️⃣ **{top_label}**: {top_prob:.2%} probability")
-            st.write(f"2️⃣ **{second_label}**: {second_prob:.2%} probability")
+            (top_label, _), (second_label, _) = diagnosis
             
             # Fetch VetGPT's response based on the top classifications
-            st.subheader(f"VetGPT's Advice on **{top_label}**")
+            st.subheader(f"VetGPT's Advice on Your Pet's Condition")
             try:
                 vetGPT_response = get_vetGPT_response(top_label, second_label, user_input)
                 st.write(vetGPT_response)
             except Exception as e:
                 st.error(f"An error occurred while fetching GPT-4 response: {str(e)}")
+
