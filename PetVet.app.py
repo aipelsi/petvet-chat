@@ -30,21 +30,25 @@ def diagnose_pet_health(user_input):
     return filtered_diagnosis[:2]  # Return only the top two classifications (excluding 'repeat')
 
 # Function to get GPT-4 response based on the top classifications
-def get_vetGPT_response(top_label, second_label, user_input):
-    """Fetch detailed advice from GPT-4 based on diagnosis."""
+def get_vetGPT_response(conditions, user_input):
+    """Fetch a compassionate, easy-to-understand veterinary response from GPT-4 based on potential conditions."""
+    
+    # Extract the top two likely conditions
+    top_conditions = ", ".join([condition[0] for condition in conditions])
+
     prompt = (
-        f"You are a veterinary assistant named VetGPT. A pet owner described their pet's symptoms as:\n\n"
+        f"You are a compassionate veterinary assistant named VetGPT. A pet owner described their pet's symptoms as:\n\n"
         f"'{user_input}'\n\n"
-        f"The AI model classified the condition as:\n"
-        f"1️⃣ **{top_label}** (most likely)\n"
-        f"2️⃣ **{second_label}** (second most likely)\n\n"
-        f"Explain what the top condition means, possible causes, recommended next steps, and whether the pet should see a vet."
+        f"Based on the AI model's assessment, the symptoms could indicate conditions such as **{top_conditions}**.\n\n"
+        f"Please provide a **thoughtful, easy-to-understand** response explaining what this might mean, possible causes, and simple care steps "
+        f"the owner can take at home. Be **empathetic** and **clear**, but remind them that this is **not a medical diagnosis** and they "
+        f"should consult a veterinarian for proper care."
     )
 
     response = client.chat.completions.create(  # Updated for OpenAI v1.0+
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "You are a helpful veterinary assistant."},
+            {"role": "system", "content": "You are a friendly and empathetic veterinary assistant, offering triage-based advice."},
             {"role": "user", "content": prompt}
         ]
     )
@@ -52,7 +56,7 @@ def get_vetGPT_response(top_label, second_label, user_input):
 
 # Streamlit app
 st.title("Pet Vet Chatbot 🐾")
-st.write("Welcome to the Pet Vet Chatbot! Describe your pet's symptoms, and I'll provide veterinary advice.")
+st.write("Welcome to the Pet Vet Chatbot! Describe your pet's symptoms, and I'll provide basic guidance and triage advice.")
 
 # Input text box for user to describe symptoms
 user_input = st.text_area("Describe your pet's symptoms (e.g., vomiting, lethargy, etc.):")
@@ -69,14 +73,13 @@ if st.button("Get Advice"):
         if len(diagnosis) < 2:
             st.error("Not enough valid classifications to proceed. Please refine the input.")
         else:
-            # Extract top two classifications
-            (top_label, _), (second_label, _) = diagnosis
-            
-            # Fetch VetGPT's response based on the top classifications
-            st.subheader(f"VetGPT's Advice on Your Pet's Condition")
+            # Fetch VetGPT's response based on the possible conditions
+            st.subheader(f"VetGPT's Guidance for Your Pet")
             try:
-                vetGPT_response = get_vetGPT_response(top_label, second_label, user_input)
+                vetGPT_response = get_vetGPT_response(diagnosis, user_input)
                 st.write(vetGPT_response)
+                st.markdown("⚠️ **Disclaimer:** This chatbot does **not** provide medical advice. It is only for **triage purposes** and general guidance. If your pet is unwell, please consult a **licensed veterinarian immediately**.")
             except Exception as e:
                 st.error(f"An error occurred while fetching GPT-4 response: {str(e)}")
+
 
