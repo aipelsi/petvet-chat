@@ -22,7 +22,7 @@ def get_base64_image(image_path):
         return base64.b64encode(img_file.read()).decode()
 
 #  Use "petvet.jpg" as Background Image
-image_filename = "petvet.jpg"  y
+image_filename = "petvet.jpg" 
 background_base64 = get_base64_image(image_filename)
 
 # Apply Full-Screen Background Image
