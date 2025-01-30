@@ -14,26 +14,46 @@ model_name = 'havocy28/VetBERTDx'
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSequenceClassification.from_pretrained(model_name)
 
-# ✅ Apply Black Background with a White Padded Content Box
+# ✅ Apply Black Background with White Text and Proper Button Styling
 st.markdown("""
     <style>
     .stApp {
         background-color: black !important; /* Black background */
+        color: white !important;
     }
     .main-container {
-        background: white;
-        padding: 30px;
+        background: black;
+        padding: 40px;
         border-radius: 12px;
         box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.3);
-        max-width: 750px;
+        max-width: 800px;
         margin: auto;
+        color: white !important;
     }
-    h1, h2, h3, p {
-        color: black !important;
+    h1, h2, h3, p, .stMarkdown {
+        color: white !important;
         text-align: center;
     }
-    .stTextArea, .stButton {
+    .stTextArea, .stTextInput {
         color: black !important;
+        background: white !important;
+    }
+    .stButton>button {
+        color: black !important;
+        background: white !important;
+        border: 2px solid white !important;
+        font-weight: bold !important;
+        border-radius: 8px !important;
+        padding: 10px 20px !important;
+        transition: 0.3s ease-in-out;
+    }
+    .stButton>button:hover {
+        background: lightgray !important;
+        color: black !important;
+        border: 2px solid lightgray !important;
+    }
+    .stRadio {
+        text-align: center;
     }
     </style>
     <div class="main-container">
@@ -42,7 +62,7 @@ st.markdown("""
 # ✅ Centered Title & Description
 st.markdown("""
     <h1>🐾 Pet Vet Chatbot</h1>
-    <p style="color: grey; font-style: italic;">Your AI-powered veterinary assistant</p>
+    <p style="font-style: italic;">Your AI-powered veterinary assistant</p>
     """, unsafe_allow_html=True)
 
 # Function to diagnose pet health using the model
@@ -125,6 +145,7 @@ elif mode == "💬 Chat with VetGPT":
 
 # ✅ Close the Padded Content Box
 st.markdown("</div>", unsafe_allow_html=True)
+
 
 
 
