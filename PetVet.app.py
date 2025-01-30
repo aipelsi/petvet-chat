@@ -7,24 +7,27 @@ import openai
 if "openai_api_key" not in st.secrets:
     st.error("❌ OpenAI API key is missing! Please add it to Streamlit Secrets.")
 else:
-    client = openai.OpenAI(api_key=st.secrets["openai_api_key"])  
+    client = openai.OpenAI(api_key=st.secrets["openai_api_key"])
 
 # Load the tokenizer and model from Hugging Face Hub
 model_name = 'havocy28/VetBERTDx'
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSequenceClassification.from_pretrained(model_name)
 
-# Function to set the full-screen background image with reduced padding
+# Function to set the full-screen background image that auto-scales
 def set_background(image_url):
-    """Apply a full-screen background image with a semi-transparent overlay and reduced padding."""
+    """Apply a full-screen background image that auto-scales with no padding."""
     st.markdown(
         f"""
         <style>
         .stApp {{
             background: url("{image_url}") no-repeat center center fixed;
             background-size: cover;
-            padding: 0px;
-            margin: 0px;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
         }}
         .overlay {{
             position: absolute;
@@ -35,11 +38,6 @@ def set_background(image_url):
             background: rgba(0, 0, 0, 0.4); /* Semi-transparent black overlay */
             z-index: -1;
         }}
-        .container {{
-            padding: 10px; /* Reduced padding */
-            text-align: center;
-            color: white;
-        }}
         .stMarkdown, .stTextArea, .stButton, .stTitle, .stRadio {{
             color: white !important;
         }}
@@ -49,7 +47,7 @@ def set_background(image_url):
         unsafe_allow_html=True
     )
 
-# ✅ Use your Google Drive image link in the correct format
+# ✅ Google Drive Image Fix: Ensure your image link is in the correct format
 background_image_url = "https://drive.google.com/uc?export=view&id=1RKiDwMlRurP5LMfudadIhrFkfD0ebn2y"
 
 # Apply the background
@@ -87,7 +85,6 @@ def get_vetGPT_response(conditions, user_input):
     return response.choices[0].message.content
 
 # Initialize Streamlit App
-st.markdown('<div class="container">', unsafe_allow_html=True)
 st.title("🐾 Pet Vet Chatbot - AI-Powered Veterinary Assistant")
 st.write("Describe your pet's symptoms, and I'll provide initial guidance.")
 
@@ -135,5 +132,4 @@ elif mode == "💬 Chat with VetGPT":
         with st.chat_message("assistant"):
             st.write(bot_reply)
 
-st.markdown('</div>', unsafe_allow_html=True)
 
