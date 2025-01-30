@@ -2,6 +2,7 @@ import streamlit as st
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import openai  
+import base64  # For encoding the image
 
 # Fetch OpenAI API key from Streamlit Secrets
 if "openai_api_key" not in st.secrets:
@@ -14,44 +15,41 @@ model_name = 'havocy28/VetBERTDx'
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSequenceClassification.from_pretrained(model_name)
 
-# Function to set the full-screen background image that auto-scales
-def set_background(image_url):
-    """Apply a full-screen background image that auto-scales with no padding."""
-    st.markdown(
-        f"""
-        <style>
-        .stApp {{
-            background: url("{image_url}") no-repeat center center fixed;
-            background-size: cover;
-            width: 100vw;
-            height: 100vh;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }}
-        .overlay {{
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.4); /* Semi-transparent black overlay */
-            z-index: -1;
-        }}
-        .stMarkdown, .stTextArea, .stButton, .stTitle, .stRadio {{
-            color: white !important;
-        }}
-        </style>
-        <div class="overlay"></div>
-        """,
-        unsafe_allow_html=True
-    )
+#  Convert Local Image ("petvet.jpg") to Base64 for Streamlit Background
+def get_base64_image(image_path):
+    """Convert a local image file to a base64 string."""
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
 
-# ✅ Google Drive Image Fix: Ensure your image link is in the correct format
-background_image_url = "https://drive.google.com/uc?export=view&id=1RKiDwMlRurP5LMfudadIhrFkfD0ebn2y"
+#  Use "petvet.jpg" as Background Image
+image_filename = "petvet.jpg"  y
+background_base64 = get_base64_image(image_filename)
 
-# Apply the background
-set_background(background_image_url)
+# Apply Full-Screen Background Image
+st.markdown(f"""
+    <style>
+    .stApp {{
+        background: url("data:image/jpg;base64,{background_base64}") no-repeat center center fixed;
+        background-size: cover;
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }}
+    .stMarkdown, .stTextArea, .stButton, .stTitle, .stRadio {{
+        color: white !important;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
+#  Centered Title & Description with a Transparent Overlay for Readability
+st.markdown("""
+    <div style="text-align: center; background: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 10px;">
+        <h1 style="color: white;">🐾 Pet Vet Chatbot</h1>
+        <p style="color: lightgrey; font-style: italic;">Your AI-powered veterinary assistant</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 # Function to diagnose pet health using the model
 def diagnose_pet_health(user_input):
@@ -131,5 +129,6 @@ elif mode == "💬 Chat with VetGPT":
         st.session_state["messages"].append({"role": "assistant", "content": bot_reply})
         with st.chat_message("assistant"):
             st.write(bot_reply)
+
 
 
