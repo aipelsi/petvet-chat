@@ -32,7 +32,7 @@ st.markdown(f"""
         background: url("data:image/jpg;base64,{background_base64}") no-repeat center center fixed;
         background-size: cover;
         width: 100vw;
-        height: 100vh;
+        height: 80vh;
         margin: 0;
         padding: 0;
         overflow: hidden;
