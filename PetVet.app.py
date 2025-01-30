@@ -2,7 +2,8 @@ import streamlit as st
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import openai  
-import base64  # For encoding the image
+import base64  
+import os  
 
 # Fetch OpenAI API key from Streamlit Secrets
 if "openai_api_key" not in st.secrets:
@@ -15,39 +16,46 @@ model_name = 'havocy28/VetBERTDx'
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSequenceClassification.from_pretrained(model_name)
 
-#  Convert Local Image ("petvet.jpg") to Base64 for Streamlit Background
+# ✅ Convert Local Image ("petvet.jpg") to Base64 for Streamlit Background
 def get_base64_image(image_path):
-    """Convert a local image file to a base64 string."""
+    """Convert a local image file to a base64 string or return None if missing."""
+    if not os.path.exists(image_path):
+        st.error(f"❌ Image file not found: {image_path}")
+        return None
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
-#  Use "petvet.jpg" as Background Image
-image_filename = "petvet.jpg" 
+# ✅ Use "petvet.jpg" as Bottom Background Image
+image_filename = "petvet.jpg"  # Ensure this file is in the same folder as your app.py
 background_base64 = get_base64_image(image_filename)
 
-# Apply Full-Screen Background Image
-st.markdown(f"""
-    <style>
-    .stApp {{
-        background: url("data:image/jpg;base64,{background_base64}") no-repeat center center fixed;
-        background-size: cover;
-        width: 100vw;
-        height: 100vh;
-        margin: 0;
-        padding: 10;
-        overflow: -10;
-    }}
-    .stMarkdown, .stTextArea, .stButton, .stTitle, .stRadio {{
-        color: white !important;
-    }}
-    </style>
-    """, unsafe_allow_html=True)
+# ✅ Apply Bottom Background Image (Only at the Base)
+if background_base64:
+    st.markdown(f"""
+        <style>
+        .stApp {{
+            background: white;  /* Keep the main content area clean */
+            margin: 0;
+            padding: 0;
+        }}
+        .footer {{
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 150px; /* Adjust height as needed */
+            background: url("data:image/jpg;base64,{background_base64}") no-repeat center bottom;
+            background-size: contain; /* Keeps the image properly scaled */
+        }}
+        </style>
+        <div class="footer"></div>
+        """, unsafe_allow_html=True)
 
-#  Centered Title & Description with a Transparent Overlay for Readability
+# ✅ Centered Title & Description
 st.markdown("""
-    <div style="text-align: center; background: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 10px;">
-        <h1 style="color: white;">🐾 Pet Vet Chatbot</h1>
-        <p style="color: lightgrey; font-style: italic;">Your AI-powered veterinary assistant</p>
+    <div style="text-align: center;">
+        <h1 style="color: black;">🐾 Pet Vet Chatbot</h1>
+        <p style="color: grey; font-style: italic;">Your AI-powered veterinary assistant</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -129,6 +137,7 @@ elif mode == "💬 Chat with VetGPT":
         st.session_state["messages"].append({"role": "assistant", "content": bot_reply})
         with st.chat_message("assistant"):
             st.write(bot_reply)
+
 
 
 
