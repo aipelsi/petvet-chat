@@ -32,10 +32,10 @@ st.markdown(f"""
         background: url("data:image/jpg;base64,{background_base64}") no-repeat center center fixed;
         background-size: cover;
         width: 100vw;
-        height: 80vh;
+        height: 100vh;
         margin: 0;
-        padding: 0;
-        overflow: hidden;
+        padding: 10;
+        overflow: -10;
     }}
     .stMarkdown, .stTextArea, .stButton, .stTitle, .stRadio {{
         color: white !important;
