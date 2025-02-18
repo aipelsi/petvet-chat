@@ -18,11 +18,11 @@ model = AutoModelForSequenceClassification.from_pretrained(model_name)
 st.markdown("""
     <style>
     .stApp {
-        background-color: black !important; /* Black background */
-        color: white !important;
+        background-color: white!important; /* Black background */
+        color: black !important;
     }
     .main-container {
-        background: black;
+        background: white;
         padding: 40px;
         border-radius: 12px;
         box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.3);
